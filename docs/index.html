@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USB Multitool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="rail">
+    <div class="brand"><span class="brand-mark"></span><span>USB<b>Multitool</b></span></div>
+    <nav id="nav">
+      <button class="nav-item active" data-view="hub"><i>01</i>Drive hub</button>
+      <button class="nav-item" data-view="health"><i>02</i>Diagnostics</button>
+      <button class="nav-item" data-view="format"><i>03</i>Format and clean</button>
+      <button class="nav-item" data-view="iso"><i>04</i>Multiboot</button>
+    </nav>
+    <div class="rail-foot mono">
+      <div><span class="dot live"></span> Simulation mode</div>
+      <div class="dim">No real disk is touched</div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="top">
+      <div>
+        <p class="eyebrow mono" id="crumb">01 / Drive hub</p>
+        <h1 id="title">Select a target drive</h1>
+      </div>
+      <div class="target mono" id="targetChip"></div>
+    </header>
+
+    <section class="view active" id="view-hub">
+      <div class="grid drives" id="driveGrid"></div>
+      <button class="ghost" id="rescan"><span class="spin-sm"></span>Rescan ports</button>
+    </section>
+
+    <section class="view" id="view-health">
+      <div class="grid two">
+        <div class="card reveal">
+          <h3>Overall health</h3>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 200 120" class="gauge">
+              <path class="g-track" d="M20 110 A80 80 0 0 1 180 110" pathLength="100"/>
+              <path class="g-fill" id="healthArc" d="M20 110 A80 80 0 0 1 180 110" pathLength="100"/>
+            </svg>
+            <div class="gauge-num"><span id="healthNum" class="mono">--</span><small>percent</small></div>
+          </div>
+          <div class="smart" id="smart"></div>
+        </div>
+        <div class="card reveal">
+          <h3>Throughput</h3>
+          <div class="speeds">
+            <div class="speed"><div class="ring"><svg viewBox="0 0 100 100"><circle class="r-track" cx="50" cy="50" r="42"/><circle class="r-fill" id="rdArc" cx="50" cy="50" r="42"/></svg><span class="mono" id="rdNum">0</span></div><p>Read MB/s</p></div>
+            <div class="speed"><div class="ring"><svg viewBox="0 0 100 100"><circle class="r-track" cx="50" cy="50" r="42"/><circle class="r-fill" id="wrArc" cx="50" cy="50" r="42"/></svg><span class="mono" id="wrNum">0</span></div><p>Write MB/s</p></div>
+          </div>
+          <button class="primary" id="speedBtn">Run speed test</button>
+        </div>
+      </div>
+      <div class="card reveal">
+        <div class="row between"><h3>Bad block scanner</h3><span class="mono dim" id="scanStat">Idle</span></div>
+        <div class="blocks" id="blocks"></div>
+        <div class="bar"><i id="scanBar"></i></div>
+        <div class="row"><button class="primary" id="scanBtn">Start scan</button><button class="ghost" id="scanStop" disabled>Stop</button></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-format">
+      <div class="grid two">
+        <div class="card reveal">
+          <h3>File system</h3>
+          <div class="chips" id="fsChips"></div>
+          <label class="field">Volume label<input id="label" class="mono" value="MULTITOOL" maxlength="11"></label>
+          <h3 class="gap">Method</h3>
+          <div class="seg" id="method">
+            <button class="active" data-m="quick">Quick format</button>
+            <button data-m="deep">Deep wipe (zero fill)</button>
+          </div>
+          <p class="dim small" id="methodHint">Rebuilds the partition table and file system. Takes seconds.</p>
+        </div>
+        <div class="card reveal">
+          <h3>Drive cleaner</h3>
+          <label class="toggle"><input type="checkbox" id="cHidden" checked><span></span>Remove hidden system files</label>
+          <label class="toggle"><input type="checkbox" id="cJunk" checked><span></span>Clear junk and temp files</label>
+          <label class="toggle"><input type="checkbox" id="cAuto" checked><span></span>Delete autorun.inf and shortcuts</label>
+          <div class="row gap"><button class="primary" id="cleanBtn">Clean drive</button></div>
+          <hr>
+          <div class="row"><button class="danger" id="formatBtn">Format drive</button><button class="danger outline" id="wipeBtn">Wipe drive</button></div>
+        </div>
+      </div>
+      <div class="card reveal">
+        <div class="row between"><h3>Progress</h3><span class="mono dim" id="opStat">No task running</span></div>
+        <div class="liquid"><div class="liquid-fill" id="opFill"></div><span class="mono" id="opPct">0%</span></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-iso">
+      <div class="drop card reveal" id="drop">
+        <input type="file" id="isoFile" accept=".iso,.img" multiple hidden>
+        <div class="drop-ring"></div>
+        <p><b>Drop ISO files here</b></p>
+        <p class="dim small">or click to browse. Files are only listed, never uploaded.</p>
+        <button class="ghost" id="sample">Add sample images</button>
+      </div>
+      <div class="grid two">
+        <div class="card reveal">
+          <div class="row between"><h3>Boot images</h3><span class="mono dim" id="isoTotal">0 items</span></div>
+          <ul class="isos" id="isoList"></ul>
+          <div class="row gap"><button class="primary" id="installBtn">Install multiboot</button></div>
+        </div>
+        <div class="card reveal">
+          <h3>Partition layout</h3>
+          <div class="layout" id="layout"></div>
+          <div class="legend mono" id="legend"></div>
+          <h3 class="gap">Boot menu preview</h3>
+          <div class="menu mono" id="bootMenu"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="console" id="console">
+  <button class="console-bar" id="consoleToggle">
+    <span class="dot" id="consoleDot"></span><span class="mono">Action console</span>
+    <span class="mono dim" id="consoleLast">Ready</span><span class="chev">&#9650;</span>
+  </button>
+  <div class="console-body mono" id="logs"></div>
+</div>
+
+<div class="modal-back" id="modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h2 id="mTitle"></h2>
+    <p id="mBody" class="dim"></p>
+    <label class="field" id="mConfirmWrap">Type <b class="mono" id="mWord"></b> to confirm<input id="mInput" class="mono" autocomplete="off"></label>
+    <div class="row end"><button class="ghost" id="mCancel">Cancel</button><button class="danger" id="mOk">Confirm</button></div>
+  </div>
+</div>
+<div class="toasts" id="toasts"></div>
+<script src="app.js"></script>
+</body>
+</html>
